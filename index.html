@@ -65,7 +65,7 @@
       position: fixed;
       bottom: 20px;
       left: 20px;
-      background-color: #10b981;
+      background-color: var(--success);
       color: white;
       padding: 12px 20px;
       border-radius: 8px;
@@ -304,15 +304,18 @@
 </head>
 <body>
 
-<div class="container">
+<div class="container" id="appContainer">
   <div class="header-bar">
     <h1>لوحة المتابعة الزمانية للأحداث</h1>
-    <button class="btn-secondary" onclick="toggleTheme()" id="themeBtn">🌙 المظهر الداكن</button>
+    <div>
+      <button class="btn-secondary" onclick="toggleTheme()" id="themeBtn">🌙 المظهر الداكن</button>
+      <button class="btn-danger" style="font-size: 12px;" onclick="lockDashboard()">🔒 قفل اللوحة</button>
+    </div>
   </div>
 
   <div id="toast" class="toast-notification">
-    <span>✅</span>
-    <span id="toastMessage">تمت إضافة الحدث بنجاح!</span>
+    <span id="toastIcon">✅</span>
+    <span id="toastMessage">تمت العملية بنجاح!</span>
   </div>
 
   <div class="news-ticker-container" id="tickerWrapper" style="display: none;">
@@ -395,379 +398,433 @@
 </div>
 
 <script>
-  const defaultEvents = [
-    { id: 1, name: "حدث منتصف مارس", start: "2026-03-15", end: "2026-04-15" },
-    { id: 2, name: "حدث بداية أغسطس", start: "2026-08-01", end: "2026-08-31" },
-    { id: 3, name: "حدث شهر نوفمبر", start: "2026-11-01", end: "2026-11-30" }
-  ];
+  // ==================== [ إعدادات كلمة المرور ] ====================
+  const DASHBOARD_PASSWORD = "2026"; // يمكنك تغيير الرمز المفضل لديك من هنا
 
-  let events = JSON.parse(localStorage.getItem('my_events')) || defaultEvents;
-  let trashEvents = JSON.parse(localStorage.getItem('my_trash_events')) || [];
+  function checkPasswordAuth() {
+    const isAuth = localStorage.getItem('dashboard_authenticated');
+    if (isAuth === 'true') {
+      return true;
+    }
 
-  function saveEvents() {
-    localStorage.setItem('my_events', JSON.stringify(events));
-    localStorage.setItem('my_trash_events', JSON.stringify(trashEvents));
+    const inputPass = prompt("🔒 هذه اللوحة محمية.\nيرجى إدخال رمز المرور للوصول إلى الأحداث:");
+    if (inputPass === DASHBOARD_PASSWORD) {
+      localStorage.setItem('dashboard_authenticated', 'true');
+      return true;
+    } else {
+      alert("❌ رمز المرور غير صحيح!");
+      document.getElementById('appContainer').innerHTML = `
+        <div style="text-align:center; padding: 60px 20px;">
+          <h2 style="color: var(--danger);">🔒 عفواً، غير مصرح لك بالوصول</h2>
+          <p style="opacity: 0.8;">قم بإعادة تحديث الصفحة وأدخل رمز المرور الصحيح لرؤية بيانات اللوحة.</p>
+          <button onclick="location.reload()" style="margin-top:15px;" class="btn-success">🔄 إعادة المحاولة</button>
+        </div>
+      `;
+      return false;
+    }
   }
 
-  function showToast(message) {
-    const toast = document.getElementById('toast');
-    const toastMessage = document.getElementById('toastMessage');
-    toastMessage.innerText = message;
-    toast.classList.add('show');
-    
-    setTimeout(() => {
-      toast.classList.remove('show');
-    }, 3500);
+  function lockDashboard() {
+    localStorage.removeItem('dashboard_authenticated');
+    location.reload();
   }
 
-  function toggleTheme() {
-    const currentTheme = document.body.getAttribute('data-theme');
-    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-    document.body.setAttribute('data-theme', newTheme);
-    localStorage.setItem('theme', newTheme);
-    document.getElementById('themeBtn').innerText = newTheme === 'dark' ? '☀️ المظهر الفاتح' : '🌙 المظهر الداكن';
-  }
+  // ==================== [ بداية تشغيل التطبيق ] ====================
+  if (checkPasswordAuth()) {
+    const defaultEvents = [
+      { id: 1, name: "حدث منتصف مارس", start: "2026-03-15", end: "2026-04-15" },
+      { id: 2, name: "حدث بداية أغسطس", start: "2026-08-01", end: "2026-08-31" },
+      { id: 3, name: "حدث شهر نوفمبر", start: "2026-11-01", end: "2026-11-30" }
+    ];
 
-  function loadTheme() {
-    const savedTheme = localStorage.getItem('theme') || 'light';
-    document.body.setAttribute('data-theme', savedTheme);
-    document.getElementById('themeBtn').innerText = savedTheme === 'dark' ? '☀️ المظهر الفاتح' : '🌙 المظهر الداكن';
-  }
+    let events = JSON.parse(localStorage.getItem('my_events')) || defaultEvents;
+    let trashEvents = JSON.parse(localStorage.getItem('my_trash_events')) || [];
 
-  function addEventFromParams(name, start, end) {
-    if (name && start && end) {
-      const exists = events.some(e => e.name === name && e.start === start && e.end === end);
-      if (!exists) {
+    function saveEvents() {
+      localStorage.setItem('my_events', JSON.stringify(events));
+      localStorage.setItem('my_trash_events', JSON.stringify(trashEvents));
+    }
+
+    function showToast(message, type = 'success') {
+      const toast = document.getElementById('toast');
+      const toastMessage = document.getElementById('toastMessage');
+      const toastIcon = document.getElementById('toastIcon');
+
+      if (type === 'warning') {
+        toast.style.backgroundColor = 'var(--warning)';
+        toastIcon.innerText = '⚠️';
+      } else {
+        toast.style.backgroundColor = 'var(--success)';
+        toastIcon.innerText = '✅';
+      }
+
+      toastMessage.innerText = message;
+      toast.classList.add('show');
+      
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 3500);
+    }
+
+    function toggleTheme() {
+      const currentTheme = document.body.getAttribute('data-theme');
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      document.body.setAttribute('data-theme', newTheme);
+      localStorage.setItem('theme', newTheme);
+      document.getElementById('themeBtn').innerText = newTheme === 'dark' ? '☀️ المظهر الفاتح' : '🌙 المظهر الداكن';
+    }
+
+    function loadTheme() {
+      const savedTheme = localStorage.getItem('theme') || 'light';
+      document.body.setAttribute('data-theme', savedTheme);
+      document.getElementById('themeBtn').innerText = savedTheme === 'dark' ? '☀️ المظهر الفاتح' : '🌙 المظهر الداكن';
+    }
+
+    function addEventFromParams(name, start, end) {
+      if (name && start && end) {
+        const existsInActive = events.some(e => e.name === name && e.start === start && e.end === end);
+        if (existsInActive) {
+          showToast(`الحدث (${name}) موجود بالفعل في لوحتك!`, 'warning');
+          return false;
+        }
+
+        const trashIndex = trashEvents.findIndex(e => e.name === name && e.start === start && e.end === end);
+        if (trashIndex !== -1) {
+          const restoredItem = trashEvents.splice(trashIndex, 1)[0];
+          events.push(restoredItem);
+          saveEvents();
+          renderEvents();
+          showToast(`تمت استعادة الحدث (${name}) من سلة المهملات تلقائياً!`);
+          return true;
+        }
+
         events.push({ id: Date.now(), name, start, end });
         saveEvents();
         renderEvents();
         showToast(`تمت إضافة الحدث المستلم: (${name})`);
         return true;
-      } else {
-        alert('هذا الحدث موجود بالفعل في القائمة!');
+      }
+      return false;
+    }
+
+    function checkUrlForNewEvent() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const name = urlParams.get('add_name');
+      const start = urlParams.get('add_start');
+      const end = urlParams.get('add_end');
+
+      if (name && start && end) {
+        addEventFromParams(name, start, end);
+        window.history.replaceState({}, document.title, window.location.pathname);
       }
     }
-    return false;
-  }
 
-  function checkUrlForNewEvent() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const name = urlParams.get('add_name');
-    const start = urlParams.get('add_start');
-    const end = urlParams.get('add_end');
-
-    if (addEventFromParams(name, start, end)) {
-      window.history.replaceState({}, document.title, window.location.pathname);
-    }
-  }
-
-  function pasteEventLink() {
-    const inputUrl = prompt("ضع الرابط المنسوخ من البريد الإلكتروني هنا:");
-    if (inputUrl) {
-      try {
-        const urlObj = new URL(inputUrl);
-        const name = urlObj.searchParams.get('add_name');
-        const start = urlObj.searchParams.get('add_start');
-        const end = urlObj.searchParams.get('add_end');
-        if (name && start && end) {
-          addEventFromParams(name, start, end);
-        } else {
-          alert('الرابط غير صحيح أو لا يحتوي على تفاصيل الحدث.');
+    function pasteEventLink() {
+      const inputUrl = prompt("ضع الرابط المنسوخ من البريد الإلكتروني هنا:");
+      if (inputUrl) {
+        try {
+          const urlObj = new URL(inputUrl);
+          const name = urlObj.searchParams.get('add_name');
+          const start = urlObj.searchParams.get('add_start');
+          const end = urlObj.searchParams.get('add_end');
+          if (name && start && end) {
+            addEventFromParams(name, start, end);
+          } else {
+            alert('الرابط غير صحيح أو لا يحتوي على تفاصيل الحدث.');
+          }
+        } catch (e) {
+          alert('الرابط أدخلته بشكل غير صحيح.');
         }
-      } catch (e) {
-        alert('الرابط أدخلته بشكل غير صحيح.');
       }
     }
-  }
 
-  function renderYearProgress() {
-    const now = new Date();
-    const currentYear = now.getFullYear();
-    const startOfYear = new Date(currentYear, 0, 1);
-    const endOfYear = new Date(currentYear + 1, 0, 1);
+    function renderYearProgress() {
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const startOfYear = new Date(currentYear, 0, 1);
+      const endOfYear = new Date(currentYear + 1, 0, 1);
 
-    const totalDays = (endOfYear - startOfYear) / (1000 * 60 * 60 * 24);
-    const elapsedDays = Math.floor((now - startOfYear) / (1000 * 60 * 60 * 24));
-    const remainingDays = Math.ceil(totalDays - elapsedDays);
-    const percent = Math.min(Math.max(((elapsedDays / totalDays) * 100).toFixed(1), 0), 100);
+      const totalDays = (endOfYear - startOfYear) / (1000 * 60 * 60 * 24);
+      const elapsedDays = Math.floor((now - startOfYear) / (1000 * 60 * 60 * 24));
+      const remainingDays = Math.ceil(totalDays - elapsedDays);
+      const percent = Math.min(Math.max(((elapsedDays / totalDays) * 100).toFixed(1), 0), 100);
 
-    document.getElementById('yearLabel').innerText = `السنة الميلادية (${currentYear})`;
-    document.getElementById('yearPercent').innerText = `${percent}%`;
-    document.getElementById('yearFill').style.width = `${percent}%`;
-    document.getElementById('yearStats').innerHTML = `
-      <span>المنصرم: ${elapsedDays} يوم</span>
-      <span>المتبقي: ${remainingDays} يوم</span>
-    `;
-  }
-
-  function checkAlerts() {
-    const tickerWrapper = document.getElementById('tickerWrapper');
-    const tickerContent = document.getElementById('tickerContent');
-    const today = new Date();
-    today.setHours(0,0,0,0);
-
-    let alertsHtml = '';
-
-    events.forEach(ev => {
-      const startDate = new Date(ev.start);
-      const endDate = new Date(ev.end);
-      startDate.setHours(0,0,0,0);
-      endDate.setHours(0,0,0,0);
-
-      const daysToStart = Math.ceil((startDate - today) / (1000 * 60 * 60 * 24));
-      const daysToEnd = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
-
-      if (daysToStart > 0 && daysToStart <= 7) {
-        alertsHtml += `<span class="ticker-item">📌 الحدث "<strong>${ev.name}</strong>" سيبدأ خلال ${daysToStart} أيام (${ev.start})</span> ✦ `;
-      }
-
-      if (daysToStart <= 0 && daysToEnd > 0 && daysToEnd <= 3) {
-        alertsHtml += `<span class="ticker-item">⏳ الحدث "<strong>${ev.name}</strong>" يوشك على الانتهاء، متبقي ${daysToEnd} أيام</span> ✦ `;
-      }
-    });
-
-    if (alertsHtml !== '') {
-      tickerContent.innerHTML = alertsHtml;
-      tickerWrapper.style.display = 'flex';
-    } else {
-      tickerWrapper.style.display = 'none';
+      document.getElementById('yearLabel').innerText = `السنة الميلادية (${currentYear})`;
+      document.getElementById('yearPercent').innerText = `${percent}%`;
+      document.getElementById('yearFill').style.width = `${percent}%`;
+      document.getElementById('yearStats').innerHTML = `
+        <span>المنصرم: ${elapsedDays} يوم</span>
+        <span>المتبقي: ${remainingDays} يوم</span>
+      `;
     }
-  }
 
-  function renderEvents() {
-    const container = document.getElementById('eventsContainer');
-    const searchVal = document.getElementById('searchInput').value.toLowerCase();
-    const filterVal = document.getElementById('filterSelect').value;
-    
-    container.innerHTML = '';
-    const today = new Date();
-    today.setHours(0,0,0,0);
+    function checkAlerts() {
+      const tickerWrapper = document.getElementById('tickerWrapper');
+      const tickerContent = document.getElementById('tickerContent');
+      const today = new Date();
+      today.setHours(0,0,0,0);
 
-    events.forEach(ev => {
-      if (!ev.name.toLowerCase().includes(searchVal)) return;
+      let alertsHtml = '';
 
-      const startDate = new Date(ev.start);
-      const endDate = new Date(ev.end);
-      startDate.setHours(0,0,0,0);
-      endDate.setHours(0,0,0,0);
+      events.forEach(ev => {
+        const startDate = new Date(ev.start);
+        const endDate = new Date(ev.end);
+        startDate.setHours(0,0,0,0);
+        endDate.setHours(0,0,0,0);
 
-      const totalTime = endDate - startDate;
-      const totalDays = Math.max(Math.ceil(totalTime / (1000 * 60 * 60 * 24)), 1);
-      
-      let percent = 0;
-      let statusText = '';
-      let statusColor = '';
-      let elapsedDays = 0;
-      let remainingDays = 0;
+        const daysToStart = Math.ceil((startDate - today) / (1000 * 60 * 60 * 24));
+        const daysToEnd = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
 
-      if (today < startDate) {
-        percent = 0;
-        statusText = 'لم يبدأ';
-        statusColor = '#9ca3af';
-        elapsedDays = 0;
-        remainingDays = totalDays;
-        if (filterVal === 'active' || filterVal === 'completed') return;
-      } else if (today >= endDate) {
-        percent = 100;
-        statusText = 'مكتمل';
-        statusColor = '#10b981';
-        elapsedDays = totalDays;
-        remainingDays = 0;
-        if (filterVal === 'active' || filterVal === 'pending') return;
+        if (daysToStart > 0 && daysToStart <= 7) {
+          alertsHtml += `<span class="ticker-item">📌 الحدث "<strong>${ev.name}</strong>" سيبدأ خلال ${daysToStart} أيام (${ev.start})</span> ✦ `;
+        }
+
+        if (daysToStart <= 0 && daysToEnd > 0 && daysToEnd <= 3) {
+          alertsHtml += `<span class="ticker-item">⏳ الحدث "<strong>${ev.name}</strong>" يوشك على الانتهاء، متبقي ${daysToEnd} أيام</span> ✦ `;
+        }
+      });
+
+      if (alertsHtml !== '') {
+        tickerContent.innerHTML = alertsHtml;
+        tickerWrapper.style.display = 'flex';
       } else {
-        const elapsedTime = today - startDate;
-        elapsedDays = Math.ceil(elapsedTime / (1000 * 60 * 60 * 24));
-        remainingDays = totalDays - elapsedDays;
-        percent = Math.round((elapsedDays / totalDays) * 100);
-        statusText = 'جارٍ الآن';
-        statusColor = '#3b82f6';
-        if (filterVal === 'pending' || filterVal === 'completed') return;
+        tickerWrapper.style.display = 'none';
       }
+    }
 
-      container.innerHTML += `
-        <div class="card event-card">
-          <div class="circle-chart" style="--percent: ${percent}; --color: ${statusColor};">
-            <div class="circle-inner">${percent}%</div>
-          </div>
-          
-          <div class="event-details">
-            <div class="event-header">
-              <strong style="font-size: 1.1rem;">${ev.name}</strong>
-              <div class="action-btns">
-                <span class="status-badge" style="background: ${statusColor}">${statusText}</span>
-                <button class="btn-mail" onclick="shareViaEmail('${ev.name}', '${ev.start}', '${ev.end}')">✉️ إرسال بالبريد</button>
-                <button class="btn-danger" onclick="moveToTrash(${ev.id})">🗑️ نقل للسلة</button>
+    function renderEvents() {
+      const container = document.getElementById('eventsContainer');
+      const searchVal = document.getElementById('searchInput').value.toLowerCase();
+      const filterVal = document.getElementById('filterSelect').value;
+      
+      container.innerHTML = '';
+      const today = new Date();
+      today.setHours(0,0,0,0);
+
+      events.forEach(ev => {
+        if (!ev.name.toLowerCase().includes(searchVal)) return;
+
+        const startDate = new Date(ev.start);
+        const endDate = new Date(ev.end);
+        startDate.setHours(0,0,0,0);
+        endDate.setHours(0,0,0,0);
+
+        const totalTime = endDate - startDate;
+        const totalDays = Math.max(Math.ceil(totalTime / (1000 * 60 * 60 * 24)), 1);
+        
+        let percent = 0;
+        let statusText = '';
+        let statusColor = '';
+        let elapsedDays = 0;
+        let remainingDays = 0;
+
+        if (today < startDate) {
+          percent = 0;
+          statusText = 'لم يبدأ';
+          statusColor = '#9ca3af';
+          elapsedDays = 0;
+          remainingDays = totalDays;
+          if (filterVal === 'active' || filterVal === 'completed') return;
+        } else if (today >= endDate) {
+          percent = 100;
+          statusText = 'مكتمل';
+          statusColor = '#10b981';
+          elapsedDays = totalDays;
+          remainingDays = 0;
+          if (filterVal === 'active' || filterVal === 'pending') return;
+        } else {
+          const elapsedTime = today - startDate;
+          elapsedDays = Math.ceil(elapsedTime / (1000 * 60 * 60 * 24));
+          remainingDays = totalDays - elapsedDays;
+          percent = Math.round((elapsedDays / totalDays) * 100);
+          statusText = 'جارٍ الآن';
+          statusColor = '#3b82f6';
+          if (filterVal === 'pending' || filterVal === 'completed') return;
+        }
+
+        container.innerHTML += `
+          <div class="card event-card">
+            <div class="circle-chart" style="--percent: ${percent}; --color: ${statusColor};">
+              <div class="circle-inner">${percent}%</div>
+            </div>
+            
+            <div class="event-details">
+              <div class="event-header">
+                <strong style="font-size: 1.1rem;">${ev.name}</strong>
+                <div class="action-btns">
+                  <span class="status-badge" style="background: ${statusColor}">${statusText}</span>
+                  <button class="btn-mail" onclick="shareViaEmail('${ev.name}', '${ev.start}', '${ev.end}')">✉️ إرسال بالبريد</button>
+                  <button class="btn-danger" onclick="moveToTrash(${ev.id})">🗑️ نقل للسلة</button>
+                </div>
+              </div>
+
+              <div class="progress-bar-bg">
+                <div class="progress-bar-fill" style="width: ${percent}%; background: ${statusColor};"></div>
+              </div>
+
+              <div class="meta-info">
+                <span>البداية: ${ev.start}</span>
+                <span>المنصرم: ${elapsedDays} يوم | المتبقي: ${remainingDays} يوم</span>
+                <span>النهاية: ${ev.end}</span>
               </div>
             </div>
-
-            <div class="progress-bar-bg">
-              <div class="progress-bar-fill" style="width: ${percent}%; background: ${statusColor};"></div>
-            </div>
-
-            <div class="meta-info">
-              <span>البداية: ${ev.start}</span>
-              <span>المنصرم: ${elapsedDays} يوم | المتبقي: ${remainingDays} يوم</span>
-              <span>النهاية: ${ev.end}</span>
-            </div>
           </div>
-        </div>
-      `;
-    });
+        `;
+      });
 
-    renderTrash();
-    checkAlerts();
-  }
-
-  function moveToTrash(id) {
-    const itemToTrash = events.find(e => e.id === id);
-    if (itemToTrash) {
-      trashEvents.push(itemToTrash);
-      events = events.filter(e => e.id !== id);
-      saveEvents();
-      renderEvents();
-      showToast(`تم نقل الحدث (${itemToTrash.name}) إلى السلة`);
-    }
-  }
-
-  function restoreFromTrash(id) {
-    const itemToRestore = trashEvents.find(e => e.id === id);
-    if (itemToRestore) {
-      events.push(itemToRestore);
-      trashEvents = trashEvents.filter(e => e.id !== id);
-      saveEvents();
-      renderEvents();
-      showToast(`تمت استعادة الحدث (${itemToRestore.name})`);
-    }
-  }
-
-  function deletePermanently(id) {
-    if (confirm('هل أنت تأكد من حذف هذا الحدث نهائياً؟ لن تتمكن من استعادته.')) {
-      trashEvents = trashEvents.filter(e => e.id !== id);
-      saveEvents();
-      renderEvents();
-    }
-  }
-
-  function emptyTrash() {
-    if (trashEvents.length === 0) return;
-    if (confirm('هل أنت تأكد من تفريغ سلة المهملات تماماً؟')) {
-      trashEvents = [];
-      saveEvents();
-      renderEvents();
-    }
-  }
-
-  function renderTrash() {
-    document.getElementById('trashCount').innerText = trashEvents.length;
-    const trashContainer = document.getElementById('trashContainer');
-    trashContainer.innerHTML = '';
-
-    if (trashEvents.length === 0) {
-      trashContainer.innerHTML = '<p style="text-align:center; opacity:0.6; font-size:13px; margin:5px 0;">سلة المهملات فارغة</p>';
-      return;
+      renderTrash();
+      checkAlerts();
     }
 
-    trashEvents.forEach(item => {
-      trashContainer.innerHTML += `
-        <div class="trash-item">
-          <div>
-            <strong>${item.name}</strong> 
-            <small style="opacity:0.7; margin-right:10px;">(${item.start} إلى ${item.end})</small>
-          </div>
-          <div class="action-btns">
-            <button class="btn-success" onclick="restoreFromTrash(${item.id})">🔄 استعادة</button>
-            <button class="btn-danger" onclick="deletePermanently(${item.id})">❌ حذف نهائي</button>
-          </div>
-        </div>
-      `;
-    });
-  }
-
-  function toggleTrashView() {
-    const trashContainer = document.getElementById('trashContainer');
-    const toggleBtn = document.getElementById('trashToggleBtn');
-    if (trashContainer.style.display === 'none') {
-      trashContainer.style.display = 'block';
-      toggleBtn.innerText = 'إخفاء السلة';
-    } else {
-      trashContainer.style.display = 'none';
-      toggleBtn.innerText = 'إظهار السلة';
-    }
-  }
-
-  function shareViaEmail(name, start, end) {
-    const baseUrl = window.location.href.split('?')[0];
-    const shareUrl = `${baseUrl}?add_name=${encodeURIComponent(name)}&add_start=${start}&add_end=${end}`;
-    
-    const subject = encodeURIComponent(`مشاركة حدث: ${name}`);
-    const body = encodeURIComponent(
-      `السلام عليكم،\n\nإليك تفاصيل الحدث:\n📌 الاسم: ${name}\n📅 البداية: ${start}\n🏁 النهاية: ${end}\n\n` +
-      `لإضافة هذا الحدث مباشرة إلى ملف المتابعة الخاص بك، افتح الرابط التالي أو انسخه وضعه في خيار "🔗 إضافة من رابط البريد":\n${shareUrl}\n`
-    );
-
-    window.location.href = `mailto:?subject=${subject}&body=${body}`;
-  }
-
-  document.getElementById('addEventForm').addEventListener('submit', (e) => {
-    e.preventDefault();
-    const nameVal = document.getElementById('evName').value;
-    const newEv = {
-      id: Date.now(),
-      name: nameVal,
-      start: document.getElementById('evStart').value,
-      end: document.getElementById('evEnd').value
-    };
-    events.push(newEv);
-    saveEvents();
-    renderEvents();
-    showToast(`تمت إضافة الحدث (${nameVal}) بنجاح!`);
-    e.target.reset();
-  });
-
-  function exportData() {
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(events, null, 2));
-    const downloadAnchor = document.createElement('a');
-    downloadAnchor.setAttribute("href", dataStr);
-    downloadAnchor.setAttribute("download", "events_backup.json");
-    document.body.appendChild(downloadAnchor);
-    downloadAnchor.click();
-    downloadAnchor.remove();
-  }
-
-  function importData(event) {
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      try {
-        const importedEvents = JSON.parse(e.target.result);
-        if(Array.isArray(importedEvents)) {
-          let addedCount = 0;
-          importedEvents.forEach(imp => {
-            if(!events.some(e => e.name === imp.name && e.start === imp.start)) {
-              events.push(imp);
-              addedCount++;
-            }
-          });
-          saveEvents();
-          renderEvents();
-          showToast(`تم استيراد ${addedCount} أحداث بنجاح!`);
-        }
-      } catch(err) {
-        alert('خطأ في قراءة الملف!');
+    function moveToTrash(id) {
+      const itemToTrash = events.find(e => e.id === id);
+      if (itemToTrash) {
+        trashEvents.push(itemToTrash);
+        events = events.filter(e => e.id !== id);
+        saveEvents();
+        renderEvents();
+        showToast(`تم نقل الحدث (${itemToTrash.name}) إلى السلة`);
       }
-    };
-    reader.readAsText(event.target.files[0]);
+    }
+
+    function restoreFromTrash(id) {
+      const itemToRestore = trashEvents.find(e => e.id === id);
+      if (itemToRestore) {
+        events.push(itemToRestore);
+        trashEvents = trashEvents.filter(e => e.id !== id);
+        saveEvents();
+        renderEvents();
+        showToast(`تمت استعادة الحدث (${itemToRestore.name})`);
+      }
+    }
+
+    function deletePermanently(id) {
+      if (confirm('هل أنت تأكد من حذف هذا الحدث نهائياً؟ لن تتمكن من استعادته.')) {
+        trashEvents = trashEvents.filter(e => e.id !== id);
+        saveEvents();
+        renderEvents();
+      }
+    }
+
+    function emptyTrash() {
+      if (trashEvents.length === 0) return;
+      if (confirm('هل أنت تأكد من تفريغ سلة المهملات تماماً؟')) {
+        trashEvents = [];
+        saveEvents();
+        renderEvents();
+      }
+    }
+
+    function renderTrash() {
+      document.getElementById('trashCount').innerText = trashEvents.length;
+      const trashContainer = document.getElementById('trashContainer');
+      trashContainer.innerHTML = '';
+
+      if (trashEvents.length === 0) {
+        trashContainer.innerHTML = '<p style="text-align:center; opacity:0.6; font-size:13px; margin:5px 0;">سلة المهملات فارغة</p>';
+        return;
+      }
+
+      trashEvents.forEach(item => {
+        trashContainer.innerHTML += `
+          <div class="trash-item">
+            <div>
+              <strong>${item.name}</strong> 
+              <small style="opacity:0.7; margin-right:10px;">(${item.start} إلى ${item.end})</small>
+            </div>
+            <div class="action-btns">
+              <button class="btn-success" onclick="restoreFromTrash(${item.id})">🔄 استعادة</button>
+              <button class="btn-danger" onclick="deletePermanently(${item.id})">❌ حذف نهائي</button>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    function toggleTrashView() {
+      const trashContainer = document.getElementById('trashContainer');
+      const toggleBtn = document.getElementById('trashToggleBtn');
+      if (trashContainer.style.display === 'none') {
+        trashContainer.style.display = 'block';
+        toggleBtn.innerText = 'إخفاء السلة';
+      } else {
+        trashContainer.style.display = 'none';
+        toggleBtn.innerText = 'إظهار السلة';
+      }
+    }
+
+    function shareViaEmail(name, start, end) {
+      const baseUrl = window.location.href.split('?')[0];
+      const shareUrl = `${baseUrl}?add_name=${encodeURIComponent(name)}&add_start=${start}&add_end=${end}`;
+      
+      const subject = encodeURIComponent(`مشاركة حدث: ${name}`);
+      const body = encodeURIComponent(
+        `السلام عليكم،\n\nإليك تفاصيل الحدث:\n📌 الاسم: ${name}\n📅 البداية: ${start}\n🏁 النهاية: ${end}\n\n` +
+        `لإضافة هذا الحدث مباشرة إلى ملف المتابعة الخاص بك، افتح الرابط التالي أو انسخه وضعه في خيار "🔗 إضافة من رابط البريد":\n${shareUrl}\n`
+      );
+
+      window.location.href = `mailto:?subject=${subject}&body=${body}`;
+    }
+
+    document.getElementById('addEventForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const nameVal = document.getElementById('evName').value;
+      const newEv = {
+        id: Date.now(),
+        name: nameVal,
+        start: document.getElementById('evStart').value,
+        end: document.getElementById('evEnd').value
+      };
+      events.push(newEv);
+      saveEvents();
+      renderEvents();
+      showToast(`تمت إضافة الحدث (${nameVal}) بنجاح!`);
+      e.target.reset();
+    });
+
+    function exportData() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(events, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", "events_backup.json");
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    }
+
+    function importData(event) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const importedEvents = JSON.parse(e.target.result);
+          if(Array.isArray(importedEvents)) {
+            let addedCount = 0;
+            importedEvents.forEach(imp => {
+              if(!events.some(e => e.name === imp.name && e.start === imp.start)) {
+                events.push(imp);
+                addedCount++;
+              }
+            });
+            saveEvents();
+            renderEvents();
+            showToast(`تم استيراد ${addedCount} أحداث بنجاح!`);
+          }
+        } catch(err) {
+          alert('خطأ في قراءة الملف!');
+        }
+      };
+      reader.readAsText(event.target.files[0]);
+    }
+
+    document.getElementById('searchInput').addEventListener('input', renderEvents);
+    document.getElementById('filterSelect').addEventListener('change', renderEvents);
+
+    loadTheme();
+    checkUrlForNewEvent();
+    renderYearProgress();
+    renderEvents();
   }
-
-  document.getElementById('searchInput').addEventListener('input', renderEvents);
-  document.getElementById('filterSelect').addEventListener('change', renderEvents);
-
-  loadTheme();
-  checkUrlForNewEvent();
-  renderYearProgress();
-  renderEvents();
 </script>
 </body>
 </html>
 
-
-‫أُرسلت من الـ iPhone‬
