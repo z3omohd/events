@@ -3,7 +3,7 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>لوحة المتابعة الزمانية - النسخة الاحترافية</title>
   <style>
     :root {
@@ -30,14 +30,19 @@
       --ticker-text: #38bdf8;
     }
 
+    * {
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: system-ui, -apple-system, sans-serif;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background-color: var(--bg);
       color: var(--text);
       margin: 0;
-      padding: 20px;
+      padding: 15px;
       direction: rtl;
       transition: background-color 0.3s, color 0.3s;
+      -webkit-tap-highlight-color: transparent;
     }
 
     .container {
@@ -50,14 +55,27 @@
       justify-content: space-between;
       align-items: center;
       margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .header-title {
+      font-size: 1.4rem;
+      font-weight: bold;
+      margin: 0;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 8px;
     }
 
     .card {
       background: var(--card-bg);
       border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 20px;
-      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
       transition: background-color 0.3s;
     }
 
@@ -65,6 +83,9 @@
       position: fixed;
       bottom: 20px;
       left: 20px;
+      right: 20px;
+      max-width: 400px;
+      margin: 0 auto;
       background-color: var(--success);
       color: white;
       padding: 12px 20px;
@@ -93,28 +114,24 @@
       color: var(--ticker-text);
       border-radius: 8px;
       overflow: hidden;
-      margin-bottom: 20px;
+      margin-bottom: 16px;
       box-shadow: 0 2px 4px rgba(0,0,0,0.15);
     }
 
     .ticker-title {
       background: var(--danger);
       color: white;
-      padding: 10px 15px;
+      padding: 10px 12px;
       font-weight: bold;
-      font-size: 13px;
+      font-size: 12px;
       white-space: nowrap;
       z-index: 2;
-      display: flex;
-      align-items: center;
-      gap: 5px;
     }
 
     .ticker-wrap {
       flex: 1;
       overflow: hidden;
       white-space: nowrap;
-      position: relative;
     }
 
     .ticker-move {
@@ -124,14 +141,10 @@
       animation: tickerAnimation 25s linear infinite;
     }
 
-    .ticker-move:hover {
-      animation-play-state: paused;
-    }
-
     .ticker-item {
       display: inline-block;
-      padding: 0 20px;
-      font-size: 14px;
+      padding: 0 15px;
+      font-size: 13px;
     }
 
     @keyframes tickerAnimation {
@@ -140,7 +153,7 @@
     }
 
     .year-title {
-      font-size: 1.2rem;
+      font-size: 1.1rem;
       font-weight: bold;
       margin-bottom: 10px;
       display: flex;
@@ -148,23 +161,31 @@
     }
 
     .quarters-container {
-      display: flex;
-      height: 28px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 2px;
       border-radius: 8px;
       overflow: hidden;
       background: var(--border);
-      margin: 10px 0;
+      margin: 12px 0;
     }
 
     .q-block {
-      flex: 1;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
       font-size: 11px;
       font-weight: bold;
       color: #fff;
-      border-left: 2px solid #fff;
+      padding: 6px 2px;
+      text-align: center;
+    }
+
+    .q-block span {
+      font-size: 9px;
+      opacity: 0.9;
+      font-weight: normal;
     }
 
     .q1 { background-color: #3b82f6; }
@@ -174,23 +195,35 @@
 
     .controls {
       display: flex;
-      gap: 10px;
+      gap: 8px;
       margin-bottom: 15px;
       flex-wrap: wrap;
     }
 
     input, select, button {
-      padding: 8px 12px;
+      padding: 10px 12px;
       border: 1px solid var(--border);
       border-radius: 8px;
-      font-size: 14px;
+      font-size: 13px;
       outline: none;
       background: var(--card-bg);
       color: var(--text);
+      width: 100%;
     }
 
-    input[type="search"], select {
-      flex: 1;
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    @media (min-width: 640px) {
+      .form-grid {
+        grid-template-columns: 2fr 1fr 1fr auto;
+      }
+      input, select, button {
+        width: auto;
+      }
     }
 
     button {
@@ -201,6 +234,7 @@
       font-weight: bold;
       display: inline-flex;
       align-items: center;
+      justify-content: center;
       gap: 5px;
       transition: 0.2s;
     }
@@ -214,13 +248,26 @@
 
     .event-card {
       display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    @media (min-width: 640px) {
+      .event-card {
+        flex-direction: row;
+        align-items: center;
+      }
+    }
+
+    .event-header-top {
+      display: flex;
       align-items: center;
-      gap: 20px;
+      gap: 15px;
     }
 
     .circle-chart {
-      width: 70px;
-      height: 70px;
+      width: 60px;
+      height: 60px;
       border-radius: 50%;
       background: conic-gradient(var(--color) calc(var(--percent) * 1%), var(--border) 0);
       display: flex;
@@ -230,38 +277,40 @@
     }
 
     .circle-inner {
-      width: 54px;
-      height: 54px;
+      width: 46px;
+      height: 46px;
       background: var(--circle-inner-bg);
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
       font-weight: bold;
-      font-size: 13px;
+      font-size: 12px;
     }
 
-    .event-details { flex: 1; }
+    .event-details { flex: 1; width: 100%; }
 
     .event-header {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      margin-bottom: 6px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 8px;
     }
 
     .status-badge {
-      font-size: 11px;
+      font-size: 10px;
       padding: 3px 8px;
       border-radius: 12px;
       color: white;
-      margin-left: 5px;
+      white-space: nowrap;
     }
 
     .progress-bar-bg {
       background: var(--border);
-      height: 10px;
-      border-radius: 5px;
+      height: 8px;
+      border-radius: 4px;
       overflow: hidden;
       margin: 8px 0;
     }
@@ -274,18 +323,31 @@
     .meta-info {
       display: flex;
       justify-content: space-between;
-      font-size: 12px;
-      opacity: 0.8;
+      font-size: 11px;
+      opacity: 0.85;
+      flex-wrap: wrap;
+      gap: 5px;
     }
 
     .action-btns {
       display: flex;
       gap: 5px;
+      flex-wrap: wrap;
+      width: 100%;
+      margin-top: 10px;
+    }
+
+    @media (min-width: 640px) {
+      .action-btns {
+        width: auto;
+        margin-top: 0;
+      }
     }
 
     .action-btns button {
-      padding: 4px 8px;
+      padding: 6px 10px;
       font-size: 11px;
+      flex: 1;
     }
 
     .trash-card {
@@ -294,22 +356,43 @@
     }
     .trash-item {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px;
+      flex-direction: column;
+      gap: 8px;
+      padding: 10px 0;
       border-bottom: 1px solid var(--border);
     }
+
+    @media (min-width: 640px) {
+      .trash-item {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+      }
+    }
     .trash-item:last-child { border-bottom: none; }
+    
+    .toolbar-btns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      width: 100%;
+    }
+    @media (min-width: 640px) {
+      .toolbar-btns {
+        display: flex;
+        width: auto;
+      }
+    }
   </style>
 </head>
 <body>
 
 <div class="container" id="appContainer">
   <div class="header-bar">
-    <h1>لوحة المتابعة الزمانية للأحداث</h1>
-    <div>
-      <button class="btn-secondary" onclick="toggleTheme()" id="themeBtn">🌙 المظهر الداكن</button>
-      <button class="btn-danger" style="font-size: 12px;" onclick="lockDashboard()">🔒 قفل اللوحة</button>
+    <h1 class="header-title">لوحة المتابعة الزمانية للأحداث</h1>
+    <div class="header-actions">
+      <button class="btn-secondary" onclick="toggleTheme()" id="themeBtn">🌙 الداكن</button>
+      <button class="btn-danger" onclick="lockDashboard()">🔒 قفل</button>
     </div>
   </div>
 
@@ -319,7 +402,7 @@
   </div>
 
   <div class="news-ticker-container" id="tickerWrapper" style="display: none;">
-    <div class="ticker-title">🔔 تنبيهات عاجلة</div>
+    <div class="ticker-title">🔔 تنبيهات</div>
     <div class="ticker-wrap">
       <div class="ticker-move" id="tickerContent"></div>
     </div>
@@ -331,15 +414,15 @@
       <span id="yearPercent">0%</span>
     </div>
     
-    <div class="progress-bar-bg" style="height: 14px;">
+    <div class="progress-bar-bg" style="height: 12px;">
       <div id="yearFill" class="progress-bar-fill" style="background: var(--success);"></div>
     </div>
 
     <div class="quarters-container">
-      <div class="q-block q1">Q1 (يناير - مارس)</div>
-      <div class="q-block q2">Q2 (أبريل - يونيو)</div>
-      <div class="q-block q3">Q3 (يوليو - سبتمبر)</div>
-      <div class="q-block q4">Q4 (أكتوبر - ديسمبر)</div>
+      <div class="q-block q1">Q1 <span>(يناير-مارس)</span></div>
+      <div class="q-block q2">Q2 <span>(أبريل-يونيو)</span></div>
+      <div class="q-block q3">Q3 <span>(يوليو-سبتمبر)</span></div>
+      <div class="q-block q4">Q4 <span>(أكتوبر-ديسمبر)</span></div>
     </div>
 
     <div class="meta-info" id="yearStats">
@@ -348,34 +431,34 @@
     </div>
   </div>
 
-  <div class="card" style="padding: 15px;">
-    <div class="controls" style="margin:0; justify-content: space-between;">
-      <div>
-        <button class="btn-success" onclick="exportData()">💾 تصدير كل الأحداث</button>
-        <button class="btn-secondary" onclick="document.getElementById('importFile').click()">📂 استيراد ملف أحداث</button>
-        <button class="btn-mail" onclick="pasteEventLink()">🔗 إضافة من رابط البريد</button>
+  <div class="card" style="padding: 12px;">
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+      <div class="toolbar-btns">
+        <button class="btn-success" onclick="exportData()">💾 تصدير</button>
+        <button class="btn-secondary" onclick="document.getElementById('importFile').click()">📂 استيراد</button>
+        <button class="btn-mail" style="grid-column: span 2;" onclick="pasteEventLink()">🔗 إضافة من رابط البريد</button>
         <input type="file" id="importFile" style="display:none" accept=".json" onchange="importData(event)">
       </div>
-      <small style="opacity: 0.7; align-self: center;">تُحفظ الأحداث محلياً تلقائياً</small>
+      <small style="opacity: 0.7; text-align: center;">تُحفظ الأحداث محلياً تلقائياً</small>
     </div>
   </div>
 
   <div class="card">
-    <h3 style="margin-top:0;">إضافة حدث جديد</h3>
-    <form id="addEventForm" class="controls" style="margin: 0;">
-      <input type="text" id="evName" placeholder="اسم الحدث" required style="flex: 2;">
+    <h3 style="margin-top:0; margin-bottom: 12px; font-size: 1.1rem;">إضافة حدث جديد</h3>
+    <form id="addEventForm" class="form-grid">
+      <input type="text" id="evName" placeholder="اسم الحدث" required>
       <input type="date" id="evStart" required>
       <input type="date" id="evEnd" required>
-      <button type="submit" class="btn-success">➕ إضافة الحدث</button>
+      <button type="submit" class="btn-success">➕ إضافة</button>
     </form>
   </div>
 
-  <div class="controls">
-    <input type="search" id="searchInput" placeholder="بحث عن حدث...">
+  <div class="controls" style="display: grid; grid-template-columns: 2fr 1fr; gap: 8px;">
+    <input type="search" id="searchInput" placeholder="بحث...">
     <select id="filterSelect">
-      <option value="all">كل الأحداث</option>
-      <option value="active">جارية حالياً</option>
-      <option value="pending">لم تبدأ بعد</option>
+      <option value="all">الكل</option>
+      <option value="active">جارية</option>
+      <option value="pending">لم تبدأ</option>
       <option value="completed">مكتملة</option>
     </select>
   </div>
@@ -383,23 +466,22 @@
   <div id="eventsContainer"></div>
 
   <div class="card trash-card">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-      <h3 style="margin: 0; color: var(--danger); display: flex; align-items: center; gap: 8px;">
-        🗑️ سلة المهملات (<span id="trashCount">0</span>)
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+      <h3 style="margin: 0; color: var(--danger); font-size: 1rem;">
+        🗑️ السلة (<span id="trashCount">0</span>)
       </h3>
-      <div>
-        <button class="btn-secondary" style="font-size: 12px;" onclick="toggleTrashView()" id="trashToggleBtn">إظهار السلة</button>
-        <button class="btn-danger" style="font-size: 12px;" onclick="emptyTrash()">تفريغ السلة نهائياً</button>
+      <div style="display: flex; gap: 5px;">
+        <button class="btn-secondary" style="font-size: 11px; padding: 4px 8px;" onclick="toggleTrashView()" id="trashToggleBtn">إظهار</button>
+        <button class="btn-danger" style="font-size: 11px; padding: 4px 8px;" onclick="emptyTrash()">تفريغ</button>
       </div>
     </div>
     
-    <div id="trashContainer" style="display: none; margin-top: 15px;"></div>
+    <div id="trashContainer" style="display: none; margin-top: 12px;"></div>
   </div>
 </div>
 
 <script>
-  // ==================== [ إعدادات كلمة المرور ] ====================
-  const DASHBOARD_PASSWORD = "2026"; // يمكنك تغيير الرمز المفضل لديك من هنا
+  const DASHBOARD_PASSWORD = "2026";
 
   function checkPasswordAuth() {
     const isAuth = localStorage.getItem('dashboard_authenticated');
@@ -415,8 +497,8 @@
       alert("❌ رمز المرور غير صحيح!");
       document.getElementById('appContainer').innerHTML = `
         <div style="text-align:center; padding: 60px 20px;">
-          <h2 style="color: var(--danger);">🔒 عفواً، غير مصرح لك بالوصول</h2>
-          <p style="opacity: 0.8;">قم بإعادة تحديث الصفحة وأدخل رمز المرور الصحيح لرؤية بيانات اللوحة.</p>
+          <h2 style="color: var(--danger);">🔒 غير مصرح بالوصول</h2>
+          <p style="opacity: 0.8;">قم بإعادة تحديث الصفحة وأدخل رمز المرور الصحيح.</p>
           <button onclick="location.reload()" style="margin-top:15px;" class="btn-success">🔄 إعادة المحاولة</button>
         </div>
       `;
@@ -429,7 +511,6 @@
     location.reload();
   }
 
-  // ==================== [ بداية تشغيل التطبيق ] ====================
   if (checkPasswordAuth()) {
     const defaultEvents = [
       { id: 1, name: "حدث منتصف مارس", start: "2026-03-15", end: "2026-04-15" },
@@ -471,20 +552,20 @@
       const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
       document.body.setAttribute('data-theme', newTheme);
       localStorage.setItem('theme', newTheme);
-      document.getElementById('themeBtn').innerText = newTheme === 'dark' ? '☀️ المظهر الفاتح' : '🌙 المظهر الداكن';
+      document.getElementById('themeBtn').innerText = newTheme === 'dark' ? '☀️ الفاتح' : '🌙 الداكن';
     }
 
     function loadTheme() {
       const savedTheme = localStorage.getItem('theme') || 'light';
       document.body.setAttribute('data-theme', savedTheme);
-      document.getElementById('themeBtn').innerText = savedTheme === 'dark' ? '☀️ المظهر الفاتح' : '🌙 المظهر الداكن';
+      document.getElementById('themeBtn').innerText = savedTheme === 'dark' ? '☀️ الفاتح' : '🌙 الداكن';
     }
 
     function addEventFromParams(name, start, end) {
       if (name && start && end) {
         const existsInActive = events.some(e => e.name === name && e.start === start && e.end === end);
         if (existsInActive) {
-          showToast(`الحدث (${name}) موجود بالفعل في لوحتك!`, 'warning');
+          showToast(`الحدث (${name}) موجود بالفعل!`, 'warning');
           return false;
         }
 
@@ -494,14 +575,14 @@
           events.push(restoredItem);
           saveEvents();
           renderEvents();
-          showToast(`تمت استعادة الحدث (${name}) من سلة المهملات تلقائياً!`);
+          showToast(`تمت استعادة (${name}) من السلة!`);
           return true;
         }
 
         events.push({ id: Date.now(), name, start, end });
         saveEvents();
         renderEvents();
-        showToast(`تمت إضافة الحدث المستلم: (${name})`);
+        showToast(`تمت إضافة: (${name})`);
         return true;
       }
       return false;
@@ -576,11 +657,11 @@
         const daysToEnd = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
 
         if (daysToStart > 0 && daysToStart <= 7) {
-          alertsHtml += `<span class="ticker-item">📌 الحدث "<strong>${ev.name}</strong>" سيبدأ خلال ${daysToStart} أيام (${ev.start})</span> ✦ `;
+          alertsHtml += `<span class="ticker-item">📌 "<strong>${ev.name}</strong>" يبدأ خلال ${daysToStart} أيام</span> ✦ `;
         }
 
         if (daysToStart <= 0 && daysToEnd > 0 && daysToEnd <= 3) {
-          alertsHtml += `<span class="ticker-item">⏳ الحدث "<strong>${ev.name}</strong>" يوشك على الانتهاء، متبقي ${daysToEnd} أيام</span> ✦ `;
+          alertsHtml += `<span class="ticker-item">⏳ "<strong>${ev.name}</strong>" يوشك على الانتهاء، متبقي ${daysToEnd} أيام</span> ✦ `;
         }
       });
 
@@ -644,28 +725,31 @@
 
         container.innerHTML += `
           <div class="card event-card">
-            <div class="circle-chart" style="--percent: ${percent}; --color: ${statusColor};">
-              <div class="circle-inner">${percent}%</div>
+            <div class="event-header-top">
+              <div class="circle-chart" style="--percent: ${percent}; --color: ${statusColor};">
+                <div class="circle-inner">${percent}%</div>
+              </div>
+              <div style="flex:1;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <strong style="font-size: 1.05rem;">${ev.name}</strong>
+                  <span class="status-badge" style="background: ${statusColor}">${statusText}</span>
+                </div>
+                <div class="progress-bar-bg">
+                  <div class="progress-bar-fill" style="width: ${percent}%; background: ${statusColor};"></div>
+                </div>
+              </div>
             </div>
             
             <div class="event-details">
-              <div class="event-header">
-                <strong style="font-size: 1.1rem;">${ev.name}</strong>
-                <div class="action-btns">
-                  <span class="status-badge" style="background: ${statusColor}">${statusText}</span>
-                  <button class="btn-mail" onclick="shareViaEmail('${ev.name}', '${ev.start}', '${ev.end}')">✉️ إرسال بالبريد</button>
-                  <button class="btn-danger" onclick="moveToTrash(${ev.id})">🗑️ نقل للسلة</button>
-                </div>
-              </div>
-
-              <div class="progress-bar-bg">
-                <div class="progress-bar-fill" style="width: ${percent}%; background: ${statusColor};"></div>
-              </div>
-
               <div class="meta-info">
                 <span>البداية: ${ev.start}</span>
-                <span>المنصرم: ${elapsedDays} يوم | المتبقي: ${remainingDays} يوم</span>
+                <span>المنصرم: ${elapsedDays} ي | المتبقي: ${remainingDays} ي</span>
                 <span>النهاية: ${ev.end}</span>
+              </div>
+
+              <div class="action-btns">
+                <button class="btn-mail" onclick="shareViaEmail('${ev.name}', '${ev.start}', '${ev.end}')">✉️ مشاركة</button>
+                <button class="btn-danger" onclick="moveToTrash(${ev.id})">🗑️ حذف</button>
               </div>
             </div>
           </div>
@@ -683,7 +767,7 @@
         events = events.filter(e => e.id !== id);
         saveEvents();
         renderEvents();
-        showToast(`تم نقل الحدث (${itemToTrash.name}) إلى السلة`);
+        showToast(`تم نقل الحدث إلى السلة`);
       }
     }
 
@@ -694,12 +778,12 @@
         trashEvents = trashEvents.filter(e => e.id !== id);
         saveEvents();
         renderEvents();
-        showToast(`تمت استعادة الحدث (${itemToRestore.name})`);
+        showToast(`تمت استعادة الحدث`);
       }
     }
 
     function deletePermanently(id) {
-      if (confirm('هل أنت تأكد من حذف هذا الحدث نهائياً؟ لن تتمكن من استعادته.')) {
+      if (confirm('هل أنت تأكد من الحذف النهائي؟')) {
         trashEvents = trashEvents.filter(e => e.id !== id);
         saveEvents();
         renderEvents();
@@ -708,7 +792,7 @@
 
     function emptyTrash() {
       if (trashEvents.length === 0) return;
-      if (confirm('هل أنت تأكد من تفريغ سلة المهملات تماماً؟')) {
+      if (confirm('هل أنت تأكد من تفريغ سلة المهملات؟')) {
         trashEvents = [];
         saveEvents();
         renderEvents();
@@ -721,7 +805,7 @@
       trashContainer.innerHTML = '';
 
       if (trashEvents.length === 0) {
-        trashContainer.innerHTML = '<p style="text-align:center; opacity:0.6; font-size:13px; margin:5px 0;">سلة المهملات فارغة</p>';
+        trashContainer.innerHTML = '<p style="text-align:center; opacity:0.6; font-size:12px; margin:5px 0;">السلة فارغة</p>';
         return;
       }
 
@@ -729,12 +813,12 @@
         trashContainer.innerHTML += `
           <div class="trash-item">
             <div>
-              <strong>${item.name}</strong> 
-              <small style="opacity:0.7; margin-right:10px;">(${item.start} إلى ${item.end})</small>
+              <strong style="font-size: 0.95rem;">${item.name}</strong> 
+              <br><small style="opacity:0.7;">(${item.start} إلى ${item.end})</small>
             </div>
-            <div class="action-btns">
-              <button class="btn-success" onclick="restoreFromTrash(${item.id})">🔄 استعادة</button>
-              <button class="btn-danger" onclick="deletePermanently(${item.id})">❌ حذف نهائي</button>
+            <div style="display:flex; gap:5px; margin-top:5px;">
+              <button class="btn-success" style="padding:4px 8px; font-size:11px;" onclick="restoreFromTrash(${item.id})">🔄 استعادة</button>
+              <button class="btn-danger" style="padding:4px 8px; font-size:11px;" onclick="deletePermanently(${item.id})">❌ حذف</button>
             </div>
           </div>
         `;
@@ -746,10 +830,10 @@
       const toggleBtn = document.getElementById('trashToggleBtn');
       if (trashContainer.style.display === 'none') {
         trashContainer.style.display = 'block';
-        toggleBtn.innerText = 'إخفاء السلة';
+        toggleBtn.innerText = 'إخفاء';
       } else {
         trashContainer.style.display = 'none';
-        toggleBtn.innerText = 'إظهار السلة';
+        toggleBtn.innerText = 'إظهار';
       }
     }
 
@@ -760,7 +844,7 @@
       const subject = encodeURIComponent(`مشاركة حدث: ${name}`);
       const body = encodeURIComponent(
         `السلام عليكم،\n\nإليك تفاصيل الحدث:\n📌 الاسم: ${name}\n📅 البداية: ${start}\n🏁 النهاية: ${end}\n\n` +
-        `لإضافة هذا الحدث مباشرة إلى ملف المتابعة الخاص بك، افتح الرابط التالي أو انسخه وضعه في خيار "🔗 إضافة من رابط البريد":\n${shareUrl}\n`
+        `لإضافة هذا الحدث مباشرة إلى ملف المتابعة الخاص بك، افتح الرابط التالي:\n${shareUrl}\n`
       );
 
       window.location.href = `mailto:?subject=${subject}&body=${body}`;
@@ -778,7 +862,7 @@
       events.push(newEv);
       saveEvents();
       renderEvents();
-      showToast(`تمت إضافة الحدث (${nameVal}) بنجاح!`);
+      showToast(`تمت إضافة (${nameVal}) بنجاح!`);
       e.target.reset();
     });
 
@@ -807,7 +891,7 @@
             });
             saveEvents();
             renderEvents();
-            showToast(`تم استيراد ${addedCount} أحداث بنجاح!`);
+            showToast(`تم استيراد ${addedCount} أحداث!`);
           }
         } catch(err) {
           alert('خطأ في قراءة الملف!');
